@@ -17,7 +17,7 @@ class LoginConfig(BaseModel):
 
 class Config(BaseModel):
     login: LoginConfig = Field(default_factory=LoginConfig)
-    is_test: bool = Field(default=False, description="是否为测试环境")
+    is_test: bool = Field(default=True, description="是否为测试环境")
 
 
 ZxConfig.add_plugin_config(

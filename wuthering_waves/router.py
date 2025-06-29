@@ -1,4 +1,5 @@
 from fastapi import APIRouter, FastAPI
+from fastapi.staticfiles import StaticFiles
 import nonebot
 
 from .config import WEB_PREFIX
@@ -12,3 +13,5 @@ router = APIRouter(prefix=WEB_PREFIX)
 router.include_router(ww_login_router)
 
 app.include_router(router)
+
+app.mount("/resources", StaticFiles(directory="resources"), name="resources")

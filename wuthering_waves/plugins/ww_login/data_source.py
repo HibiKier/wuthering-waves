@@ -3,6 +3,7 @@ import hashlib
 from pathlib import Path
 import uuid
 
+import async_timeout
 import nonebot
 from nonebot.adapters import Bot
 
@@ -11,10 +12,10 @@ from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.platform import PlatformUtils
 
 from ...config import GAME_NAME, LOG_COMMAND, WEB_PREFIX, config
+from ...handles.login import LoginHandler
 from ...utils.pattern import CODE_PATTERN, MOBILE_PATTERN
 from ...utils.utils import QrCodeUtils, TimedCache, get_public_ip
 from ...utils.waves_api import WavesApi
-from ...ww_handler import WavesHandler
 
 driver = nonebot.get_driver()
 
@@ -32,6 +33,11 @@ NORMAL_RESULT_FORMAT = """
 登录链接(10分钟内有效)：
 {}
 """.strip()
+
+# 添加常量定义
+LOGIN_TIMEOUT = 600  # 登录超时时间（秒）
+POLL_INTERVAL = 0.1  # 轮询间隔（秒）
+LOGIN_DATA_INIT = {"mobile": -1, "code": -1}
 
 
 class LoginManager:
@@ -134,7 +140,7 @@ class LoginManager:
                 else result.msg
             )
         token = result.data.token
-        await WavesHandler.add_cookie(user_id, token, did)
+        await LoginHandler.add_user_cookie(user_id, token, did)
         return "登录成功"
 
     @classmethod
@@ -146,38 +152,100 @@ class LoginManager:
             user_id: 用户ID
             group_id: 群ID
 
+        返回:
+            str: 登录结果
         """
-
         token = cls.get_token(user_id)
 
-        await PlatformUtils.send_message(
-            bot,
-            user_id,
-            group_id,
-            MessageUtils.build_message(*await cls.get_login(user_id, token)),
-        )
-
-        result = cache.get(token)
-        if isinstance(result, dict):
-            return ""
-
-        future = asyncio.get_event_loop().create_future()
-        data = {"mobile": -1, "code": -1, "user_id": user_id, "future": future}
-        cache.set(token, data)
-        text = ""
         try:
-            # 等待结果或超时
-            result = await asyncio.wait_for(future, timeout=600)
-            text = f"{result['mobile']} {result['code']}"
-        except asyncio.TimeoutError:
-            cache.delete(token)
+            # 发送登录信息
             await PlatformUtils.send_message(
-                bot, user_id, group_id, "登录超时，请重新尝试"
+                bot,
+                user_id,
+                group_id,
+                MessageUtils.build_message(*await cls.get_login(user_id, token)),
             )
+
+            # 检查是否已有完整的登录数据
+            result = cache.get(token)
+            if cls._is_complete_login_data(result):
+                # 确保result不为None且包含所需数据
+                if result and isinstance(result, dict):
+                    text = f"{result['mobile']},{result['code']}"
+                    cache.delete(token)
+                    return await cls.code_login(bot, user_id, group_id, text)
+
+            # 创建新的登录会话
+            data = {**LOGIN_DATA_INIT, "user_id": user_id}
+            cache.set(token, data)
+
+            # 等待登录结果
+            text = await cls._wait_for_login_completion(bot, user_id, group_id, token)
+
+            # 执行登录
+            return await cls.code_login(bot, user_id, group_id, text)
+
         except Exception as e:
-            logger.error("登录过程中出现错误", LOG_COMMAND, session=user_id, e=e)
+            # 确保清理缓存
             cache.delete(token)
+            logger.error("页面登录过程中出现错误", LOG_COMMAND, session=user_id, e=e)
             await PlatformUtils.send_message(
                 bot, user_id, group_id, "登录过程中出现错误，请稍后重试"
             )
-        return await cls.code_login(bot, user_id, group_id, text)
+            return "登录过程中出现错误，请稍后重试"
+
+    @classmethod
+    def _is_complete_login_data(cls, result) -> bool:
+        """检查是否为完整的登录数据"""
+        if not isinstance(result, dict) or result is None:
+            return False
+        return result.get("mobile") != -1 and result.get("code") != -1
+
+    @classmethod
+    async def _wait_for_login_completion(
+        cls, bot: Bot, user_id: str, group_id: str | None, token: str
+    ) -> str:
+        """等待登录完成
+
+        参数:
+            bot: Bot
+            user_id: 用户ID
+            group_id: 群ID
+            token: 登录token
+
+        返回:
+            str: 登录信息文本
+
+        异常:
+            asyncio.TimeoutError: 登录超时
+        """
+        try:
+            async with async_timeout.timeout(LOGIN_TIMEOUT):
+                while True:
+                    result = cache.get(token)
+
+                    if result is None:
+                        # 缓存被清理，说明超时
+                        await cls._send_timeout_message(bot, user_id, group_id)
+                        raise asyncio.TimeoutError("登录超时")
+
+                    if cls._is_complete_login_data(result):
+                        # 获取到完整的登录信息
+                        if result and isinstance(result, dict):
+                            text = f"{result['mobile']} {result['code']}"
+                            cache.delete(token)
+                            return text
+
+                    # 等待后再次检查
+                    await asyncio.sleep(POLL_INTERVAL)
+
+        except asyncio.TimeoutError:
+            # 超时处理
+            cache.delete(token)
+            await cls._send_timeout_message(bot, user_id, group_id)
+            raise
+
+    @classmethod
+    async def _send_timeout_message(cls, bot: Bot, user_id: str, group_id: str | None):
+        """发送超时消息"""
+        await PlatformUtils.send_message(bot, user_id, group_id, "登录超时，请重新尝试")

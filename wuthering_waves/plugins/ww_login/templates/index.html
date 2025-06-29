@@ -4,318 +4,211 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WutheringWavesUID 登录</title>
+  <title>Zhenxun × WutheringWaves 登录</title>
   <link rel="icon" href="https://web-static.kurobbs.com/resource/prod/icon.ico" type="image/x-icon">
   <script src="https://static.geetest.com/v4/gt4.js"></script>
   <script src="https://apps.bdimg.com/libs/jquery/1.6.4/jquery.min.js"></script>
   <style>
-    body,
-    html {
+    body, html {
+      height: 100%;
       margin: 0;
-      padding: 0;
-      height: 100%;
-      font-family: 'Microsoft YaHei', sans-serif;
+      font-family: 'HarmonyOS Sans', 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
+      background: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);
+      min-height: 100vh;
+      position: relative;
     }
-
-    body {
-      background-image: url('https://prod-alicdn-community.kurobbs.com/forum/465dcb694966492aba4d4982c47f0e8520240914.jpg');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
+    .bg-gradient {
+      position: fixed;
+      inset: 0;
+      background: url('https://prod-alicdn-community.kurobbs.com/forum/465dcb694966492aba4d4982c47f0e8520240914.jpg') center/cover no-repeat;
+      filter: blur(0px) brightness(0.85);
+      z-index: 0;
+    }
+    .center-card {
+      position: absolute;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(255,255,255,0.22);
+      border-radius: 2.5rem;
+      box-shadow: 0 8px 40px 0 rgba(31,38,135,0.18);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(255,255,255,0.18);
+      width: 370px;
+      max-width: 96vw;
+      padding: 2.8rem 2rem 1.5rem 2rem;
       display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 2;
+      animation: fadeIn 1s cubic-bezier(.68,-0.55,.27,1.55);
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translate(-50%, -40%) scale(0.96);}
+      to { opacity: 1; transform: translate(-50%, -50%) scale(1);}
+    }
+    .brand-coop {
+      display: flex;
+      align-items: center;
       justify-content: center;
-      align-items: center;
+      margin-bottom: 1.2rem;
+      gap: 1.2rem;
     }
-
-    body::before {
-      content: "";
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-image: inherit;
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      filter: blur(8px);
-      z-index: -1;
+    .brand-logo {
+      width: 48px;
+      height: 48px;
+      border-radius: 1.2rem;
+      background: #fff;
+      border: 2px solid rgba(255,255,255,0.7);
+      box-shadow: 0 2px 8px rgba(102,126,234,0.10);
+      transition: transform 0.2s;
     }
-
-    .login-container {
-      background-color: rgba(255, 255, 255, 0.2);
-      padding: 2rem;
-      border-radius: 16px;
-      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      width: 320px;
-      transition: all 0.3s ease;
+    .brand-logo:hover {
+      transform: scale(1.08) rotate(-5deg);
+      box-shadow: 0 8px 32px rgba(102,126,234,0.18);
     }
-
-    .login-container:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.45);
-    }
-
-    .login-header {
-      display: flex;
-      align-items: center;
-      margin-bottom: 2rem;
-      justify-content: space-between;
-    }
-
-    .banner {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      overflow: hidden;
-      border: 3px solid rgba(255, 255, 255, 0.5);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      margin-right: 0.5rem;
-    }
-
-    .banner img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .banner-text {
-      flex: 1;
-      padding-right: 1rem;
-      margin-left: 0.5rem;
-    }
-
-    .welcome-text {
-      font-size: 1.5rem;
-      font-weight: 700;
+    .brand-x {
+      font-size: 2.2rem;
+      font-weight: 900;
       color: #fff;
-      margin-bottom: 0.25rem;
-      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+      text-shadow: 0 2px 8px #aabbee;
+      user-select: none;
+      letter-spacing: 0.2em;
     }
-
-    .logo-text {
-      font-size: 0.9rem;
-      font-weight: 700;
+    .main-title {
+      font-size: 2rem;
+      font-weight: 800;
       color: #fff;
-      margin-bottom: 0.25rem;
-      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-    }
-
-    .kurobbs-text {
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: #e6e6e6;
-      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-    }
-
-    .input-group {
-      margin-bottom: 1.5rem;
-    }
-
-    label {
-      display: block;
       margin-bottom: 0.5rem;
+      letter-spacing: 0.1em;
+      text-shadow: 0 2px 8px #aabbee;
+    }
+    .sub-title {
+      font-size: 1.1rem;
       color: #fff;
-      font-weight: 500;
+      opacity: 0.85;
+      margin-bottom: 2rem;
+      letter-spacing: 0.1em;
     }
-
-    input[type="tel"],
-    input[type="text"] {
+    .pretty-form {
       width: 100%;
-      padding: 0.75rem;
-      border: none;
-      border-radius: 8px;
-      box-sizing: border-box;
-      font-size: 16px;
-      background-color: rgba(255, 255, 255, 0.9);
-      transition: all 0.3s ease;
-    }
-
-    input[type="tel"]:focus,
-    input[type="text"]:focus {
-      outline: none;
-      box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.6);
-    }
-
-    .verification-group {
       display: flex;
-      gap: 0.5rem;
+      flex-direction: column;
+      gap: 1.1rem;
+      margin-top: 1.2rem;
     }
-
-    .verification-group input {
-      flex-grow: 1;
+    .input-row {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
     }
-
-    button {
-      width: 100%;
-      padding: 0.75rem;
-      background-color: #4a90e2;
-      color: white;
+    .input-row input {
+      flex: 1;
+      height: 44px;
+      border: 1.2px solid #d0d7e2;
+      border-radius: 1.2rem;
+      background: #f7fafd;
+      color: #222;
+      font-size: 1rem;
+      padding: 0 1rem;
+      outline: none;
+      transition: border 0.2s;
+    }
+    .input-row input:focus {
+      border: 1.2px solid #7faaff;
+      background: #fff;
+    }
+    .code-btn {
+      height: 44px;
       border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-size: 16px;
+      border-radius: 1.2rem;
+      background: #7faaff;
+      color: #fff;
       font-weight: 600;
-    }
-
-    button:hover {
-      background-color: #357abd;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    button:disabled {
-      background-color: #ccc;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
-
-    #getCodeBtn {
-      width: auto;
+      font-size: 1rem;
+      padding: 0 1.2rem;
+      cursor: pointer;
       white-space: nowrap;
-      padding: 0.75rem 1rem;
-      display: inline-block;
+      transition: background 0.2s;
+      min-width: 110px;
+      box-sizing: border-box;
     }
-
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-
-    .modal-content {
-      background-color: #fefefe;
-      margin: 15% auto;
-      padding: 20px;
-      border: 1px solid #888;
-      width: 300px;
-      border-radius: 10px;
-      text-align: center;
-      transform: scale(0.7);
-      transition: transform 0.3s ease;
-    }
-
-    .modal.show {
-      display: block;
-      opacity: 1;
-    }
-
-    .modal.show .modal-content {
-      transform: scale(1);
-    }
-
-    .close {
+    .code-btn:disabled {
+      background: #e0e7ef;
       color: #aaa;
-      float: right;
-      font-size: 28px;
-      font-weight: bold;
-      cursor: pointer;
+      cursor: not-allowed;
     }
-
-    .close:hover,
-    .close:focus {
-      color: #000;
-      text-decoration: none;
-      cursor: pointer;
+    .code-btn:not(:disabled):hover {
+      background: #5b8eea;
     }
-
-    .user-id-display {
-      text-align: right;
-      color: rgba(255, 255, 255, 0.6);
-      font-size: 0.8em;
-      margin-bottom: 10px;
-      transition: opacity 0.3s ease;
-    }
-
-    .user-id-display:hover {
-      opacity: 1;
-    }
-
-    .modal-content {
-      background-color: #fefefe;
-      margin: 15% auto;
-      padding: 20px;
-      border: 1px solid #888;
-      width: 300px;
-      border-radius: 10px;
-      text-align: center;
-      transform: scale(0.7);
-      transition: transform 0.3s ease, opacity 0.3s ease;
-    }
-
-    .modal.show .modal-content {
-      transform: scale(1);
-      opacity: 1;
-    }
-
-    .countdown {
-      font-size: 0.9em;
-      color: #666;
-      margin-top: 10px;
-    }
-
-    .redirect-button {
-      margin-top: 15px;
-      padding: 10px 20px;
-      background-color: #4a90e2;
-      color: white;
+    .main-btn {
+      margin-top: 0.5rem;
+      width: 100%;
+      height: 48px;
       border: none;
-      border-radius: 5px;
+      border-radius: 1.5rem;
+      background: #7faaff;
+      color: #fff;
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
       cursor: pointer;
-      transition: background-color 0.3s ease;
+      transition: background 0.2s;
     }
-
-    .redirect-button:hover {
-      background-color: #357abd;
+    .main-btn:disabled {
+      background: #e0e7ef;
+      color: #aaa;
+      cursor: not-allowed;
+    }
+    .main-btn:not(:disabled):hover {
+      background: #5b8eea;
+    }
+    .footer {
+      margin-top: 2.2rem;
+      color: #fff;
+      font-size: 0.95rem;
+      opacity: 0.7;
+      letter-spacing: 0.1em;
+      text-align: center;
+    }
+    @media (max-width: 480px) {
+      .center-card { padding: 1.2rem 0.5rem; width: 99vw; }
+      .brand-logo { width: 32px; height: 32px; }
+      .main-title { font-size: 1.3rem; }
+      .sub-title { font-size: 0.95rem; }
     }
   </style>
 </head>
 
 <body>
-  <div class="login-container">
-    <div class="login-header">
-      <div class="banner-text">
-        <div class="welcome-text">欢迎登录</div>
-        <div class="logo-text">WutheringWavesUID</div>
-        <div class="kurobbs-text">库街区</div>
-      </div>
-      <div class="banner">
-        <img src="https://web-static.kurobbs.com/adminConfig/27/role_icon/1727419309663.png" alt="Banner">
-      </div>
+  <div class="bg-gradient"></div>
+  <div class="center-card">
+    <div class="brand-coop">
+      <img src="/resources/image/icon.jpg" class="brand-logo" alt="Zhenxun">
+      <span class="brand-x">×</span>
+      <img src="https://web-static.kurobbs.com/adminConfig/27/role_icon/1727419309663.png" class="brand-logo" alt="WutheringWaves">
     </div>
-    <form id="loginForm">
-      <div class="input-group">
-        <label for="phone">手机号</label>
-        <input type="tel" id="phone" name="phone" required pattern="[0-9]{11}" placeholder="请输入11位手机号">
+    <div class="main-title">鸣潮登录</div>
+    <form id="loginForm" class="pretty-form">
+      <div class="input-row">
+        <input type="tel" id="phone" name="phone" maxlength="11" placeholder="手机号" required>
       </div>
-      <div class="input-group">
-        <label for="verificationCode">验证码</label>
-        <div class="verification-group">
-          <input type="text" id="verificationCode" name="verificationCode" required placeholder="请输入验证码">
-          <button type="button" id="getCodeBtn" disabled>获取验证码</button>
-        </div>
+      <div class="input-row">
+        <input type="text" id="verificationCode" name="verificationCode" placeholder="验证码" required>
+        <button type="button" id="getCodeBtn" class="code-btn" disabled>获取验证码</button>
       </div>
-      <div id="userIdDisplay" class="user-id-display">当前识别码: {{ user_id }}</div>
-      <button type="submit" id="loginBtn">登录</button>
+      <button type="submit" id="loginBtn" class="main-btn" disabled>登录</button>
     </form>
+    <div class="footer">
+      <span>© {{ year }} Zhenxun × WutheringWaves</span>
+    </div>
   </div>
 
+  <!-- 成功模态框 -->
   <div id="successModal" class="modal">
     <div class="modal-content">
       <span class="close">&times;</span>
-      <h2>登录成功</h2>
+      <h2>🎉 登录成功</h2>
       <p>欢迎回来！</p>
       <p class="countdown">5秒后自动跳转到首页</p>
       <button class="redirect-button">立即跳转</button>
@@ -323,6 +216,25 @@
   </div>
 
   <script>
+    // 创建浮动粒子
+    function createParticles() {
+      const particlesContainer = document.getElementById('particles');
+      const particleCount = 20;
+      
+      for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.top = Math.random() * 100 + '%';
+        particle.style.width = Math.random() * 4 + 2 + 'px';
+        particle.style.height = particle.style.width;
+        particle.style.animationDelay = Math.random() * 6 + 's';
+        particle.style.animationDuration = (Math.random() * 3 + 3) + 's';
+        particlesContainer.appendChild(particle);
+      }
+    }
+
+    // 页面元素
     const phoneInput = document.getElementById('phone');
     const verificationCodeInput = document.getElementById('verificationCode');
     const getCodeBtn = document.getElementById('getCodeBtn');
@@ -331,6 +243,7 @@
     const modal = document.getElementById('successModal');
     const closeBtn = modal.querySelector('.close');
 
+    // 输入验证
     phoneInput.addEventListener('input', function () {
       getCodeBtn.disabled = this.value.length !== 11;
       loginBtn.disabled = this.value.length !== 11 || verificationCodeInput.value === "";
@@ -340,6 +253,7 @@
       loginBtn.disabled = this.value === "" || phoneInput.value.length !== 11;
     });
 
+    // 极验验证码配置
     const headers = {
       "devcode": generateRandomString(),
       "source": "h5",
@@ -357,21 +271,31 @@
         if (!result) {
           return alert('请完成验证');
         }
-        result.captcha_id = captchaId
+        result.captcha_id = captchaId;
+        
+        // 显示加载状态
+        getCodeBtn.innerHTML = '<span class="loading"></span>';
+        
         $.ajax({
           url: 'https://api.kurobbs.com/user/getSmsCodeForH5',
-          type: 'POST', // 通常发送数据使用 POST
+          type: 'POST',
           data: {
             "mobile": phoneInput.value,
             "geeTestData": JSON.stringify(result)
           },
           headers: headers,
-          success: res => alert(res.success ? '验证码已发送' : '验证码发送失败 : ' + res.msg),
-          error: () => alert('请求出错，请检查网络连接')
+          success: res => {
+            if (res.success) {
+              showToast('验证码已发送', 'success');
+            } else {
+              showToast('验证码发送失败: ' + res.msg, 'error');
+            }
+          },
+          error: () => showToast('网络请求失败，请重试', 'error')
         });
       }).onError(function () {
-        alert('请求出错，请检查网络连接');
-      })
+        showToast('验证服务异常，请重试', 'error');
+      });
 
       getCodeBtn.onclick = function () {
         this.disabled = true;
@@ -393,36 +317,55 @@
       }
     });
 
+    // 登录表单提交
     loginForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      
       const data = {
         mobile: phoneInput.value,
         code: verificationCodeInput.value,
         auth: "{{ auth }}"
-      }
-      e.preventDefault();
+      };
+
+      // 显示加载状态
+      loginBtn.innerHTML = '<span class="loading"></span> 登录中...';
+      loginBtn.disabled = true;
+
       $.ajax({
-        url: '{{ server_url }}/waves/login',
+        url: '{{ submit_url }}',
         type: 'POST',
         data: JSON.stringify(data),
         contentType: 'application/json',
-        success: res => res.success ? showSuccessModal() : alert('登录失败' + (res.msg ? res.msg : '，请重试')),
-        error: () => alert('登录失败，请重试')
+        success: res => {
+          if (res.success) {
+            showSuccessModal();
+          } else {
+            showToast('登录失败: ' + (res.msg || '请重试'), 'error');
+            resetLoginButton();
+          }
+        },
+        error: () => {
+          showToast('登录失败，请检查网络连接', 'error');
+          resetLoginButton();
+        }
       });
     });
 
+    function resetLoginButton() {
+      loginBtn.innerHTML = '登录';
+      loginBtn.disabled = false;
+      updateLoginButton();
+    }
 
+    // 成功模态框
     function showSuccessModal() {
-      const homeHref = 'https://github.com/tyql688/WutheringWavesUID'
+      const homeHref = 'https://github.com/HibiKier/wuthering-waves';
       const modal = document.getElementById('successModal');
       const countdownElement = modal.querySelector('.countdown');
       const redirectButton = modal.querySelector('.redirect-button');
       let countdown = 5;
 
       modal.classList.add('show');
-      setTimeout(() => {
-        modal.querySelector('.modal-content').style.transform = 'scale(1)';
-        modal.querySelector('.modal-content').style.opacity = '1';
-      }, 10);
 
       function updateCountdown() {
         countdownElement.textContent = `${countdown}秒后自动跳转到首页`;
@@ -446,13 +389,11 @@
       });
     }
 
+    // 模态框关闭
     closeBtn.addEventListener('click', closeModal);
 
     function closeModal() {
-      modal.querySelector('.modal-content').style.transform = 'scale(0.7)';
-      setTimeout(() => {
-        modal.classList.remove('show');
-      }, 300);
+      modal.classList.remove('show');
     }
 
     window.addEventListener('click', function (event) {
@@ -461,17 +402,7 @@
       }
     });
 
-    function loadBackgroundImage() {
-      const img = new Image();
-      img.onload = function () {
-        document.body.style.backgroundImage = `url(${img.src})`;
-        document.body.classList.add('bg-loaded');
-      };
-      img.src = 'https://prod-alicdn-community.kurobbs.com/forum/465dcb694966492aba4d4982c47f0e8520240914.jpg';
-    }
-
-    window.addEventListener('load', loadBackgroundImage);
-
+    // 工具函数
     function generateRandomString() {
       const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
       return Array(32)
@@ -479,6 +410,43 @@
         .map(() => chars.charAt(Math.floor(Math.random() * chars.length)))
         .join('');
     }
+
+    // 简单的提示框
+    function showToast(message, type = 'info') {
+      const toast = document.createElement('div');
+      toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        color: white;
+        font-weight: 600;
+        z-index: 10000;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+        background: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#2196F3'};
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      `;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.transform = 'translateX(0)';
+      }, 100);
+
+      setTimeout(() => {
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+          document.body.removeChild(toast);
+        }, 300);
+      }, 3000);
+    }
+
+    // 初始化
+    document.addEventListener('DOMContentLoaded', function() {
+      createParticles();
+    });
   </script>
 </body>
 

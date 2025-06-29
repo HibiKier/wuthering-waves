@@ -1,4 +1,4 @@
-from typing import Generic, TypeVar
+from typing import TypeVar
 
 from pydantic import BaseModel, Field
 
@@ -11,21 +11,6 @@ class CallResult(BaseModel):
     data: dict | str
     """数据"""
     is_success: bool = True
-    """是否成功"""
-
-
-class WwBaseResponse(BaseModel, Generic[T]):
-    """库街区基础响应"""
-
-    url: str
-    """请求URL"""
-    code: int
-    """错误码"""
-    data: T
-    """数据"""
-    msg: str = ""
-    """消息"""
-    success: bool
     """是否成功"""
 
 

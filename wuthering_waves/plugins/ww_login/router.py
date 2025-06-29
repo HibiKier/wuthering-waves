@@ -1,3 +1,4 @@
+from datetime import datetime
 from pathlib import Path
 
 from fastapi import APIRouter
@@ -36,15 +37,16 @@ async def _(token: str):
         template = waves_templates.get_template("index.html")
         return HTMLResponse(
             template.render(
-                server_url=url,
+                submit_url=f"{url}/zhenxun/waves/login/go",
                 auth=token,
                 user_id=temp.get("user_id", ""),
                 kuro_url=MAIN_URL,
+                year=datetime.now().year,
             )
         )
 
 
-@router.post("/login")
+@router.post("/go")
 async def waves_login(data: LoginModel):
     temp = cache.get(data.auth)
     if temp is None:

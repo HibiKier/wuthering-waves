@@ -1,6 +1,11 @@
+from typing import Self, cast
+
 from tortoise import fields
 
 from zhenxun.services.db_context import Model
+from zhenxun.utils.common_utils import SqlUtils
+
+from ..utils.emuns import CookieStatus
 
 
 class WavesUser(Model):
@@ -10,6 +15,10 @@ class WavesUser(Model):
     """用户id"""
     cookie = fields.CharField(255, null=True, description="cookie")
     """cookie"""
+    cookie_status = fields.CharEnumField(
+        default=CookieStatus.NOT_LOGIN, enum_type=CookieStatus, description="cookie状态"
+    )
+    """cookie状态"""
     platform = fields.CharField(255, null=True, description="平台")
     """平台"""
     role_id = fields.CharField(255, null=True, unique=True, description="鸣潮uid")
@@ -26,3 +35,56 @@ class WavesUser(Model):
     class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
         table = "waves_users"
         table_description = "鸣潮用户表"
+
+    @classmethod
+    async def expire_cookie(
+        cls,
+        *,
+        cookie: str | None = None,
+        user_id: str | None = None,
+        role_id: str | None = None,
+    ):
+        """失效cookie
+
+        参数:
+            cookie: 需要失效的cookie
+            user_id: 需要失效的user_id
+            role_id: 需要失效的role_id
+        """
+        if not user_id and not role_id and not cookie:
+            raise ValueError("user_id, role_id, cookie 不能同时为空")
+        if user_id:
+            await cls.filter(user_id=user_id).update(
+                cookie_status=CookieStatus.LOGIN_INVALID
+            )
+        elif role_id:
+            await cls.filter(role_id=role_id).update(
+                cookie_status=CookieStatus.LOGIN_INVALID
+            )
+        elif cookie:
+            await cls.filter(cookie=cookie).update(
+                cookie_status=CookieStatus.LOGIN_INVALID
+            )
+
+    @classmethod
+    async def random_cookie(cls, count: int = 1) -> list[Self]:
+        """随机获取一个登录成功的cookie
+
+        参数:
+            count: 获取数量
+
+        返回:
+            list[Self]: 随机获取
+        """
+        sql = SqlUtils.random(
+            cls.filter(
+                cookie__not_isnull=True, cookie_status=CookieStatus.LOGIN_SUCCESS
+            ),
+            count,
+        )
+        return cast(list["WavesUser"], await cls.raw(sql))
+
+    @classmethod
+    async def get_user_cookie(cls, user_id: str) -> list[dict[str, str]]:
+        """获取用户所有cookie"""
+        return await cls.filter(user_id=user_id).values("rold_id", "cookie")

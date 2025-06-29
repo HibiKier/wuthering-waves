@@ -107,8 +107,8 @@ async def get_headers(
 
         if user:
             platform = user.platform
-            bat = user.bat
-            did = user.did
+            bat = user.access_token
+            did = user.device_id
             role_id = user.role_id
 
             logger.debug(
