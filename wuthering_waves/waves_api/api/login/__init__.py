@@ -1,24 +1,30 @@
 from collections.abc import Callable
 from functools import wraps
-from typing import Any, TypeVar
+from typing import Any, ClassVar, TypeVar
 
-from zhenxun.builtin_plugins.wuthering_waves.models.waves_user import WavesUser
 from zhenxun.utils.platform import PlatformUtils
 
-from ...base_models import WwBaseResponse
-from ...exceptions import LoginStatusCheckException, WavesException
-from ..const import (
+from ....base_models import WwBaseResponse
+from ....exceptions import LoginStatusCheckException, WavesException
+from ....models.waves_user import WavesUser
+from ....utils.utils import TimedCache
+from ...const import (
     LOGIN_H5_URL,
     LOGIN_LOG_URL,
     LOGIN_URL,
+    REFRESH_URL,
     REQUEST_TOKEN,
+    SUCCESS_CODE,
 )
-from ..error_code import ERROR_CODE, WAVES_CODE_998
-from ..headers import KURO_VERSION, get_headers
-from ..models import LoginResult, RequestToken
-from .call import CallApi, get_server_id, login_platform
+from ...error_code import ERROR_CODE, WAVES_CODE_998
+from ...headers import KURO_VERSION, get_headers
+from ..call import CallApi, get_server_id, login_platform
+from .models import LoginResult, RequestToken
 
 F = TypeVar("F", bound=Callable[..., Any])
+
+
+time_cache = TimedCache()
 
 
 def login_status_check(role_id_param: str = "role_id"):
@@ -43,10 +49,15 @@ def login_status_check(role_id_param: str = "role_id"):
             role_id = kwargs.get(role_id_param)
 
             if not role_id:
-                raise LoginStatusCheckException(
-                    f"无法获取角色ID，请检查参数 {role_id_param}",
-                    login_status="参数错误",
-                )
+                return await func(*args, **kwargs)
+
+            # 生成缓存键
+            cache_key = f"{role_id}"
+
+            # 检查缓存
+            cached_result = time_cache.get(cache_key)
+            if cached_result is not None:
+                return cached_result
 
             try:
                 # 执行原始函数
@@ -55,6 +66,9 @@ def login_status_check(role_id_param: str = "role_id"):
                 # 如果返回的是响应对象，进行登录状态检查
                 if hasattr(result, "code") and hasattr(result, "msg"):
                     await LoginApi.login_check(role_id, result)
+
+                # 更新缓存，使用默认的60秒过期时间
+                time_cache.set(cache_key, result)
 
                 return result
 
@@ -71,16 +85,18 @@ def login_status_check(role_id_param: str = "role_id"):
 
 
 class LoginApi:
+    _bat_cache: ClassVar[dict[str, str]] = {}
+
     @classmethod
     async def login(
-        cls, mobile: str, code: str, did: str
+        cls, mobile: str, code: str, device_id: str
     ) -> WwBaseResponse[LoginResult]:
         """登录
 
         参数:
             mobile: 手机号
             code: 验证码
-            did: 设备id
+            device_id: 设备id
 
         返回:
             CallResult: 登录结果
@@ -90,32 +106,31 @@ class LoginApi:
         data = {
             "mobile": mobile,
             "code": code,
-            "devCode": did,
+            "devCode": device_id,
         }
         url = LOGIN_H5_URL if platform == "h5" else LOGIN_URL
         response = await CallApi.call_post(url, header=header, data=data)
-        response.raise_for_code()
         # 兼容pydantic 1.x
         response.data = LoginResult(**response.data)
         return response
 
     @classmethod
     async def request_token(
-        cls, role_id: str, token: str, did: str, server_id: str | None = None
+        cls, role_id: str, cookie: str, device_id: str, server_id: str | None = None
     ) -> WwBaseResponse[RequestToken]:
         """获取access_token
 
         参数:
             role_id: 角色id
             token: 登录token
-            did: 设备id
+            device_id: 设备id
             server_id: 服务器id
 
         返回:
             WwBaseResponse[RequestToken]: 获取access_token
         """
-        header = await get_headers(token, role_id=role_id)
-        header.update({"token": token, "did": did, "b-at": ""})
+        header = await get_headers(cookie, role_id=role_id)
+        header.update({"token": cookie, "did": device_id, "b-at": ""})
         response = await CallApi.call_post(
             REQUEST_TOKEN,
             header=header,
@@ -129,49 +144,50 @@ class LoginApi:
         return response
 
     @classmethod
-    async def login_check(cls, rold_id: str, response: WwBaseResponse):
+    async def login_check(cls, role_id: str, response: WwBaseResponse):
         """登录状态检查
 
         参数:
-            rold_id: 角色id
+            role_id: 角色id
             response: 响应数据
 
         异常:
             LoginStatusCheckException: 登录状态检查异常
         """
-        if response.code in {200, 10902}:
+        if response.code in SUCCESS_CODE:
             return
         message = response.msg or ""
         if message in {"请求成功", "系统繁忙，请稍后再试"}:
             raise LoginStatusCheckException(
-                f"鸣潮账号id: 【{rold_id}】未绑定库街区!!!\n"
+                f"鸣潮账号id: 【{role_id}】未绑定库街区!!!\n"
                 "1.是否注册过库街区\n2.库街区能否查询当前鸣潮账号数据",
                 login_status="未绑定",
             )
         if "重新登录" in message or "登录已过期" in message:
-            await WavesUser.expire_cookie(role_id=rold_id)
+            await WavesUser.expire_cookie(role_id=role_id)
             raise LoginStatusCheckException(
-                f"鸣潮账号id: 【{rold_id}】登录已过期!!!",
+                f"鸣潮账号id: 【{role_id}】登录已过期!!!",
                 login_status="已过期",
             )
 
         if "访问被阻断" in message:
             await PlatformUtils.send_superuser(None, ERROR_CODE[WAVES_CODE_998])
 
-        if isinstance(response.data, str):
-            if "RABC" in response.data or "access denied" in response.data:
-                await PlatformUtils.send_superuser(None, ERROR_CODE[WAVES_CODE_998])
+        if isinstance(response.data, str) and (
+            "RABC" in response.data or "access denied" in response.data
+        ):
+            await PlatformUtils.send_superuser(None, ERROR_CODE[WAVES_CODE_998])
 
         if message:
             await PlatformUtils.send_superuser(None, message)
         raise LoginStatusCheckException(
-            f"鸣潮账号id: 【{rold_id}】登录状态异常!!!\n{message}",
+            f"鸣潮账号id: 【{role_id}】登录状态异常!!!\n{message}",
             login_status="未知异常",
         )
 
     @classmethod
     @login_status_check()
-    async def login_log(cls, rold_id: str, cookie: str) -> WwBaseResponse[bool]:
+    async def login_log(cls, role_id: str, cookie: str) -> WwBaseResponse[bool]:
         """登录状态检查
 
         参数:
@@ -181,7 +197,7 @@ class LoginApi:
         返回:
             WwBaseResponse[bool]: 登录状态检查
         """
-        header = await get_headers(cookie, role_id=rold_id)
+        header = await get_headers(cookie, role_id=role_id)
         header.update(
             {
                 "token": cookie,
@@ -191,5 +207,28 @@ class LoginApi:
         )
         header.pop("did", None)
         header.pop("b-at", None)
+        response = await CallApi.call_post(LOGIN_LOG_URL, header=header)
+        return response
 
-        return await CallApi.call_post(LOGIN_LOG_URL, header=header)
+    @classmethod
+    @login_status_check()
+    async def refresh(
+        cls, role_id: str, cookie: str, server_id: str | None = None
+    ) -> WwBaseResponse[bool]:
+        """刷新登录状态
+
+        参数:
+            role_id: 角色id
+            cookie: 登录token
+            server_id: 服务器id
+
+        返回:
+            WwBaseResponse[bool]: 刷新结果
+        """
+        header = await get_headers(cookie, role_id=role_id)
+
+        return await CallApi.call_post(
+            REFRESH_URL,
+            headers=header,
+            data=CallApi.default_params(role_id, server_id),
+        )

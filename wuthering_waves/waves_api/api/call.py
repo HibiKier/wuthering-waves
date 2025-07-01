@@ -10,10 +10,12 @@ from zhenxun.utils.http_utils import AsyncHttpx
 
 from ...base_models import WwBaseResponse
 from ...config import LOG_COMMAND
+from ...exceptions import APIResponseException
 from ..captcha import get_solver
 from ..captcha.base import CaptchaResult
 from ..captcha.errors import CaptchaError
 from ..const import (
+    GAME_ID,
     NET_SERVER_ID_MAP,
     SERVER_ID,
     SERVER_ID_NET,
@@ -78,8 +80,15 @@ class CallApi:
         except Exception as e:
             logger.warning(f"解析响应数据失败: {response.text}", LOG_COMMAND, e=e)
             json_data = json.loads(response.text)
+        if "data" not in json_data:
+            json_data["data"] = None
+        if "success" not in json_data:
+            # 有些请求没有success字段
+            json_data["success"] = True
         try:
             raw_data = WwBaseResponse(url=str(response.url), **json_data)
+        except APIResponseException:
+            raise
         except Exception as e:
             logger.warning(
                 f"WwBaseResponse实例化失败: {response.text}", LOG_COMMAND, e=e
@@ -101,6 +110,15 @@ class CallApi:
                 e=e,
             )
         return raw_data
+
+    @classmethod
+    def default_params(cls, role_id: str, server_id: str | None) -> dict:
+        """默认参数"""
+        return {
+            "gameId": GAME_ID,
+            "serverId": server_id or get_server_id(role_id),
+            "roleId": role_id,
+        }
 
     @classmethod
     @Retry.api()

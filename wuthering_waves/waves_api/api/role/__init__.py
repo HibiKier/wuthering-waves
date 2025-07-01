@@ -1,12 +1,14 @@
-from ...base_models import WwBaseResponse
-from ..api.call import CallApi, login_platform
-from ..const import GAME_ID, ROLE_LIST_URL
-from ..headers import get_common_header
-from ..models import RoleInfo
+from ....base_models import WwBaseResponse
+from ...const import GAME_ID, ROLE_LIST_URL
+from ...headers import get_common_header
+from ..call import CallApi, login_platform
+from ..login import login_status_check
+from .models import RoleInfo
 
 
 class RoleApi:
     @classmethod
+    @login_status_check()
     async def role_list(
         cls, token: str, did: str
     ) -> tuple[WwBaseResponse[list[RoleInfo]], str]:

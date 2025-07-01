@@ -12,10 +12,10 @@ from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.platform import PlatformUtils
 
 from ...config import GAME_NAME, LOG_COMMAND, WEB_PREFIX, config
-from ...handles.login import LoginHandler
+from ...handles.cookie import CookieHandler
 from ...utils.pattern import CODE_PATTERN, MOBILE_PATTERN
 from ...utils.utils import QrCodeUtils, TimedCache, get_public_ip
-from ...utils.waves_api import WavesApi
+from ...waves_api import WavesApi
 
 driver = nonebot.get_driver()
 
@@ -111,15 +111,11 @@ class LoginManager:
         return [QR_RESULT_FORMAT.format(GAME_NAME, user_id), path]
 
     @classmethod
-    async def code_login(
-        cls, bot: Bot, user_id: str, group_id: str | None, text: str
-    ) -> str:
+    async def code_login(cls, user_id: str, text: str) -> str:
         """验证码登录
 
         参数:
-            bot: Bot
             user_id: 用户ID
-            group_id: 群ID
             text: 手机号 验证码
 
         返回:
@@ -129,10 +125,10 @@ class LoginManager:
         if not cls.__is_valid_chinese_phone_number(mobile) or not cls.__is_valid_code(
             code
         ):
-            return "手机号+验证码登录失败\n\n请参照以下格式:\n WW登录 手机号 验证码"
+            return "手机号+验证码登录失败\n\n请参照以下格式:\n ww登录 手机号 验证码"
 
-        did = str(uuid.uuid4()).upper()
-        result = await WavesApi.login(mobile, code, did)
+        device_id = str(uuid.uuid4()).upper()
+        result = await WavesApi.login(mobile, code, device_id)
         if not result.success:
             return (
                 LOGIN_ERROR_MESSAGE
@@ -140,7 +136,7 @@ class LoginManager:
                 else result.msg
             )
         token = result.data.token
-        await LoginHandler.add_user_cookie(user_id, token, did)
+        await CookieHandler.add_user_cookie(user_id, token, device_id)
         return "登录成功"
 
     @classmethod
@@ -168,12 +164,14 @@ class LoginManager:
 
             # 检查是否已有完整的登录数据
             result = cache.get(token)
-            if cls._is_complete_login_data(result):
-                # 确保result不为None且包含所需数据
-                if result and isinstance(result, dict):
-                    text = f"{result['mobile']},{result['code']}"
-                    cache.delete(token)
-                    return await cls.code_login(bot, user_id, group_id, text)
+            if (
+                result
+                and cls._is_complete_login_data(result)
+                and isinstance(result, dict)
+            ):
+                text = f"{result['mobile']} {result['code']}"
+                cache.delete(token)
+                return await cls.code_login(user_id, text)
 
             # 创建新的登录会话
             data = {**LOGIN_DATA_INIT, "user_id": user_id}
@@ -183,14 +181,14 @@ class LoginManager:
             text = await cls._wait_for_login_completion(bot, user_id, group_id, token)
 
             # 执行登录
-            return await cls.code_login(bot, user_id, group_id, text)
+            return await cls.code_login(user_id, text)
 
         except Exception as e:
             # 确保清理缓存
             cache.delete(token)
             logger.error("页面登录过程中出现错误", LOG_COMMAND, session=user_id, e=e)
             await PlatformUtils.send_message(
-                bot, user_id, group_id, "登录过程中出现错误，请稍后重试"
+                bot, user_id, group_id, "用户登录过程中出现错误..."
             )
             return "登录过程中出现错误，请稍后重试"
 

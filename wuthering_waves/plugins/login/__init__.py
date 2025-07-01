@@ -8,7 +8,7 @@ from zhenxun.services.log import logger
 from zhenxun.utils.message import MessageUtils
 
 from ...config import LOG_COMMAND
-from ...exceptions import APIResponseException
+from ...exceptions import APIResponseException, WavesException
 from .data_source import LoginManager
 
 __plugin_meta__ = PluginMetadata(
@@ -37,9 +37,7 @@ async def _(
             if len(login_text) < 2:
                 await _matcher.send("请输入正确的登录信息: 手机号 验证码")
             result = await LoginManager.code_login(
-                bot,
                 session.user.id,
-                session.group.id if session.group else None,
                 f"{login_info.result[0]} {login_info.result[1]}",
             )
         else:
@@ -48,5 +46,11 @@ async def _(
             )
         await MessageUtils.build_message(result).send(reply_to=True)
     except APIResponseException as e:
-        logger.error(f"ww登录失败: {e}", LOG_COMMAND)
+        logger.error("ww登录失败", LOG_COMMAND, session=session, e=e)
         await MessageUtils.build_message(str(e)).send()
+    except WavesException as e:
+        logger.error("ww登录失败", LOG_COMMAND, session=session, e=e)
+        await MessageUtils.build_message(str(e)).send()
+    except Exception as e:
+        logger.error("ww登录失败", LOG_COMMAND, session=session, e=e)
+        await MessageUtils.build_message("登录未知错误，请稍后再试").send()

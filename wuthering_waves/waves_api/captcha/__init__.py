@@ -3,8 +3,8 @@ import pkgutil
 
 from zhenxun.services.log import logger
 
-from ....config import LOG_COMMAND, config
-from ....paths import CAPTCHA_PATH
+from ...config import LOG_COMMAND, config
+from ...paths import CAPTCHA_PATH
 from .base import CaptchaSolver
 
 SOLVER_REGISTRY: dict[str, type[CaptchaSolver]] = {}

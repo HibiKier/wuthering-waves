@@ -4,9 +4,9 @@ import string
 
 from zhenxun.services.log import logger
 
-from ...config import LOG_COMMAND
-from ...models.waves_user import WavesUser
-from ...utils.utils import get_public_ip
+from ..config import LOG_COMMAND
+from ..models.waves_user import WavesUser
+from ..utils.utils import get_public_ip
 
 KURO_VERSION = "2.5.0"
 KURO_VERSION_CODE = "2500"
@@ -37,12 +37,14 @@ def generate_random_ipv4_manual():
 
 async def get_common_header(platform: str = "ios") -> dict:
     """获取通用头"""
-    devCode = generate_random_string()
+    dev_code = generate_random_string()
     return {
         "source": platform,
         "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0",
-        "devCode": devCode,
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"
+        " AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0"
+        " Safari/537.36 Edg/136.0.0.0",
+        "devCode": dev_code,
         "X-Forwarded-For": generate_random_ipv6_manual(),
         "version": KURO_VERSION,
     }
@@ -50,14 +52,14 @@ async def get_common_header(platform: str = "ios") -> dict:
 
 async def get_headers_h5() -> dict:
     """获取H5头"""
-    devCode = generate_random_string()
+    dev_code = generate_random_string()
     return {
         "source": "h5",
         "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"
         " AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
         " Edg/136.0.0.0",
-        "devCode": devCode,
+        "devCode": dev_code,
         "X-Forwarded-For": generate_random_ipv6_manual(),
         "version": KURO_VERSION,
     }
@@ -127,4 +129,6 @@ async def get_headers(
         header.update({"did": did})
     if role_id:
         header.update({"roleId": role_id})
+    if cookie:
+        header.update({"token": cookie})
     return header

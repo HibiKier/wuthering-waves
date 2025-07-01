@@ -3,7 +3,7 @@ from fastapi.staticfiles import StaticFiles
 import nonebot
 
 from .config import WEB_PREFIX
-from .plugins.ww_login.router import router as ww_login_router
+from .plugins.login.router import router as ww_login_router
 
 app: FastAPI = nonebot.get_app()
 

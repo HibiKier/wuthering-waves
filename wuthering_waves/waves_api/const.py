@@ -93,3 +93,6 @@ WIKI_CATALOGUE_MAP = {
     "特殊道具": "1223",
     "活动": "1293",
 }
+
+# 正确返回的CODE
+SUCCESS_CODE = {10902, 200}

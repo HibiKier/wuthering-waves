@@ -1,4 +1,4 @@
-from typing import Self, cast
+from typing import cast
 
 from tortoise import fields
 
@@ -61,20 +61,28 @@ class WavesUser(Model):
             await cls.filter(role_id=role_id).update(
                 cookie_status=CookieStatus.LOGIN_INVALID
             )
-        elif cookie:
+        else:
             await cls.filter(cookie=cookie).update(
                 cookie_status=CookieStatus.LOGIN_INVALID
             )
 
     @classmethod
-    async def random_cookie(cls, count: int = 1) -> list[Self]:
+    async def get_role_ids(cls, user_id: str) -> list[str]:
+        """获取用户角色id"""
+        return cast(
+            list[str],
+            await cls.filter(user_id=user_id).values_list("role_id", flat=True),
+        )
+
+    @classmethod
+    async def random_cookie(cls, count: int = 1) -> list["WavesUser"]:
         """随机获取一个登录成功的cookie
 
         参数:
             count: 获取数量
 
         返回:
-            list[Self]: 随机获取
+            list["WavesUser"]: 随机获取
         """
         sql = SqlUtils.random(
             cls.filter(
@@ -85,6 +93,11 @@ class WavesUser(Model):
         return cast(list["WavesUser"], await cls.raw(sql))
 
     @classmethod
-    async def get_user_cookie(cls, user_id: str) -> list[dict[str, str]]:
+    async def get_user_cookie(cls, role_id: str) -> "WavesUser | None":
+        """获取指定角色id的cookie"""
+        return await cls.get_or_none(role_id=role_id)
+
+    @classmethod
+    async def get_user_cookies(cls, user_id: str) -> list[dict[str, str]]:
         """获取用户所有cookie"""
-        return await cls.filter(user_id=user_id).values("rold_id", "cookie")
+        return await cls.filter(user_id=user_id).values("role_id", "cookie")

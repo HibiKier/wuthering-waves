@@ -7,7 +7,7 @@ from jinja2 import Environment, FileSystemLoader
 from nonebot.compat import model_dump
 from pydantic import BaseModel
 
-from ...utils.waves_api.api import MAIN_URL
+from ...waves_api.config import MAIN_URL
 from .data_source import LoginManager, cache
 
 TEMPLATE_PATH = Path(__file__).parent / "templates"

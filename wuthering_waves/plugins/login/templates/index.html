@@ -9,7 +9,8 @@
   <script src="https://static.geetest.com/v4/gt4.js"></script>
   <script src="https://apps.bdimg.com/libs/jquery/1.6.4/jquery.min.js"></script>
   <style>
-    body, html {
+    body,
+    html {
       height: 100%;
       margin: 0;
       font-family: 'HarmonyOS Sans', 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
@@ -17,6 +18,7 @@
       min-height: 100vh;
       position: relative;
     }
+
     .bg-gradient {
       position: fixed;
       inset: 0;
@@ -24,16 +26,18 @@
       filter: blur(0px) brightness(0.85);
       z-index: 0;
     }
+
     .center-card {
       position: absolute;
-      left: 50%; top: 50%;
+      left: 50%;
+      top: 50%;
       transform: translate(-50%, -50%);
-      background: rgba(255,255,255,0.22);
+      background: rgba(255, 255, 255, 0.22);
       border-radius: 2.5rem;
-      box-shadow: 0 8px 40px 0 rgba(31,38,135,0.18);
+      box-shadow: 0 8px 40px 0 rgba(31, 38, 135, 0.18);
       backdrop-filter: blur(18px);
       -webkit-backdrop-filter: blur(18px);
-      border: 1px solid rgba(255,255,255,0.18);
+      border: 1px solid rgba(255, 255, 255, 0.18);
       width: 370px;
       max-width: 96vw;
       padding: 2.8rem 2rem 1.5rem 2rem;
@@ -41,12 +45,21 @@
       flex-direction: column;
       align-items: center;
       z-index: 2;
-      animation: fadeIn 1s cubic-bezier(.68,-0.55,.27,1.55);
+      animation: fadeIn 1s cubic-bezier(.68, -0.55, .27, 1.55);
     }
+
     @keyframes fadeIn {
-      from { opacity: 0; transform: translate(-50%, -40%) scale(0.96);}
-      to { opacity: 1; transform: translate(-50%, -50%) scale(1);}
+      from {
+        opacity: 0;
+        transform: translate(-50%, -40%) scale(0.96);
+      }
+
+      to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+      }
     }
+
     .brand-coop {
       display: flex;
       align-items: center;
@@ -54,19 +67,22 @@
       margin-bottom: 1.2rem;
       gap: 1.2rem;
     }
+
     .brand-logo {
       width: 48px;
       height: 48px;
       border-radius: 1.2rem;
       background: #fff;
-      border: 2px solid rgba(255,255,255,0.7);
-      box-shadow: 0 2px 8px rgba(102,126,234,0.10);
+      border: 2px solid rgba(255, 255, 255, 0.7);
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.10);
       transition: transform 0.2s;
     }
+
     .brand-logo:hover {
       transform: scale(1.08) rotate(-5deg);
-      box-shadow: 0 8px 32px rgba(102,126,234,0.18);
+      box-shadow: 0 8px 32px rgba(102, 126, 234, 0.18);
     }
+
     .brand-x {
       font-size: 2.2rem;
       font-weight: 900;
@@ -75,6 +91,7 @@
       user-select: none;
       letter-spacing: 0.2em;
     }
+
     .main-title {
       font-size: 2rem;
       font-weight: 800;
@@ -83,6 +100,7 @@
       letter-spacing: 0.1em;
       text-shadow: 0 2px 8px #aabbee;
     }
+
     .sub-title {
       font-size: 1.1rem;
       color: #fff;
@@ -90,6 +108,7 @@
       margin-bottom: 2rem;
       letter-spacing: 0.1em;
     }
+
     .pretty-form {
       width: 100%;
       display: flex;
@@ -97,11 +116,13 @@
       gap: 1.1rem;
       margin-top: 1.2rem;
     }
+
     .input-row {
       display: flex;
       align-items: center;
       gap: 0.7rem;
     }
+
     .input-row input {
       flex: 1;
       height: 44px;
@@ -114,10 +135,12 @@
       outline: none;
       transition: border 0.2s;
     }
+
     .input-row input:focus {
       border: 1.2px solid #7faaff;
       background: #fff;
     }
+
     .code-btn {
       height: 44px;
       border: none;
@@ -133,14 +156,17 @@
       min-width: 110px;
       box-sizing: border-box;
     }
+
     .code-btn:disabled {
       background: #e0e7ef;
       color: #aaa;
       cursor: not-allowed;
     }
+
     .code-btn:not(:disabled):hover {
       background: #5b8eea;
     }
+
     .main-btn {
       margin-top: 0.5rem;
       width: 100%;
@@ -155,14 +181,17 @@
       cursor: pointer;
       transition: background 0.2s;
     }
+
     .main-btn:disabled {
       background: #e0e7ef;
       color: #aaa;
       cursor: not-allowed;
     }
+
     .main-btn:not(:disabled):hover {
       background: #5b8eea;
     }
+
     .footer {
       margin-top: 2.2rem;
       color: #fff;
@@ -171,11 +200,25 @@
       letter-spacing: 0.1em;
       text-align: center;
     }
+
     @media (max-width: 480px) {
-      .center-card { padding: 1.2rem 0.5rem; width: 99vw; }
-      .brand-logo { width: 32px; height: 32px; }
-      .main-title { font-size: 1.3rem; }
-      .sub-title { font-size: 0.95rem; }
+      .center-card {
+        padding: 1.2rem 0.5rem;
+        width: 99vw;
+      }
+
+      .brand-logo {
+        width: 32px;
+        height: 32px;
+      }
+
+      .main-title {
+        font-size: 1.3rem;
+      }
+
+      .sub-title {
+        font-size: 0.95rem;
+      }
     }
   </style>
 </head>
@@ -186,7 +229,8 @@
     <div class="brand-coop">
       <img src="/resources/image/icon.jpg" class="brand-logo" alt="Zhenxun">
       <span class="brand-x">×</span>
-      <img src="https://web-static.kurobbs.com/adminConfig/27/role_icon/1727419309663.png" class="brand-logo" alt="WutheringWaves">
+      <img src="https://web-static.kurobbs.com/adminConfig/27/role_icon/1727419309663.png" class="brand-logo"
+        alt="WutheringWaves">
     </div>
     <div class="main-title">鸣潮登录</div>
     <form id="loginForm" class="pretty-form">
@@ -220,7 +264,7 @@
     function createParticles() {
       const particlesContainer = document.getElementById('particles');
       const particleCount = 20;
-      
+
       for (let i = 0; i < particleCount; i++) {
         const particle = document.createElement('div');
         particle.className = 'particle';
@@ -272,10 +316,10 @@
           return alert('请完成验证');
         }
         result.captcha_id = captchaId;
-        
+
         // 显示加载状态
         getCodeBtn.innerHTML = '<span class="loading"></span>';
-        
+
         $.ajax({
           url: 'https://api.kurobbs.com/user/getSmsCodeForH5',
           type: 'POST',
@@ -320,7 +364,7 @@
     // 登录表单提交
     loginForm.addEventListener('submit', function (e) {
       e.preventDefault();
-      
+
       const data = {
         mobile: phoneInput.value,
         code: verificationCodeInput.value,
@@ -359,7 +403,7 @@
 
     // 成功模态框
     function showSuccessModal() {
-      const homeHref = 'https://github.com/HibiKier/wuthering-waves';
+      const homeHref = 'https://github.com/zhenxun-org/zhenxun_bot';
       const modal = document.getElementById('successModal');
       const countdownElement = modal.querySelector('.countdown');
       const redirectButton = modal.querySelector('.redirect-button');
@@ -444,7 +488,7 @@
     }
 
     // 初始化
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
       createParticles();
     });
   </script>
