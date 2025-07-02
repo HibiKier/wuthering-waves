@@ -5,8 +5,7 @@ from zhenxun.services.db_context import Model
 
 def get_model_ref(model_name: str) -> str:
     """动态生成模型引用字符串"""
-    # 由于所有模型都在同一个文件中，直接返回模型名即可
-    return model_name
+    return f"models.{model_name}"
 
 
 class Role(Model):
@@ -111,9 +110,7 @@ class Props(Model):
 
 class Phantom(Model):
     id = fields.IntField(pk=True, generated=True, auto_increment=True)
-    role_detail = fields.ForeignKeyField(
-        get_model_ref("RoleDetail"), related_name="phantoms"
-    )
+    role = fields.ForeignKeyField(get_model_ref("Role"), related_name="phantoms")
     cost = fields.IntField(description="消耗")
     quality = fields.IntField(description="品质")
     level = fields.IntField(description="等级")

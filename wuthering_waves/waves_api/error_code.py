@@ -13,7 +13,7 @@ ERROR_CODE = {
     WAVES_CODE_101: "请检查token有效性\n",
     WAVES_CODE_102: "您还未绑定鸣潮token或者您的鸣潮token已失效！"
     "\n请使用【ww登录】完成绑定！\n",
-    WAVES_CODE_103: "您还未绑定鸣潮特征码, 请使用【ww绑定uid】完成绑定！\n",
+    WAVES_CODE_103: "您还未绑定鸣潮特征码, 请使用【ww绑定】完成绑定！\n",
     WAVES_CODE_106: "您未打开库街区我得资料的对外展示\n",
     WAVES_CODE_107: "您未打开库街区共鸣者列表的对外展示\n",
     WAVES_CODE_990: "请稍后再试，或者使用【ww登录】完成绑定！\n",

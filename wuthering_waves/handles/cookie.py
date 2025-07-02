@@ -1,5 +1,3 @@
-from typing import ClassVar
-
 from zhenxun.services.log import logger
 
 from ..config import LOG_COMMAND
@@ -7,44 +5,13 @@ from ..exceptions import APICallException, LoginStatusCheckException, WavesExcep
 from ..models.waves_user import WavesUser
 from ..utils.emuns import CookieStatus
 from ..waves_api import WavesApi
+from ..waves_api.api.call import get_access_token
 from ..waves_api.api.login import LoginApi
-from ..waves_api.const import GAME_ID, SUCCESS_CODE
+from ..waves_api.const import GAME_ID
 from ..waves_api.error_code import get_error_message
 
 
 class CookieHandler:
-    _bat_cache: ClassVar[dict[str, str]] = {}
-
-    @classmethod
-    async def get_access_token(
-        cls, role_id: str, cookie: str, device_id: str, server_id: str | None = None
-    ) -> str:
-        """获取access_token
-
-        参数:
-            role_id: 角色id
-            cookie: 登录token
-            device_id: 设备id
-            server_id: 服务器id
-
-        异常:
-            APICallException: 请求调用错误
-
-        返回:
-            str: access_token
-        """
-        if role_id in cls._bat_cache:
-            return cls._bat_cache[role_id]
-        response = await WavesApi.request_token(role_id, cookie, device_id, server_id)
-        if not response.success and response.code not in SUCCESS_CODE:
-            raise APICallException(
-                response.url,
-                response.code,
-                response.msg or get_error_message(response.code),
-            )
-        cls._bat_cache[role_id] = response.data.access_token
-        return response.data.access_token
-
     @classmethod
     async def get_cookie(
         cls, user_id: str, role_id: str | None = None
@@ -121,7 +88,7 @@ class CookieHandler:
         role = role_list[0]
 
         user, _ = await WavesUser.get_or_create(user_id=user_id, role_id=role.role_id)
-        user.access_token = await cls.get_access_token(
+        user.access_token = await get_access_token(
             role.role_id, cookie, device_id, role.server_id
         )
         user.platform = platform

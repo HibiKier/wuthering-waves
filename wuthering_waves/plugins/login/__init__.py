@@ -7,7 +7,6 @@ from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
 from zhenxun.utils.message import MessageUtils
 
-from ...config import LOG_COMMAND
 from ...exceptions import APIResponseException, WavesException
 from .data_source import LoginManager
 
@@ -45,12 +44,11 @@ async def _(
                 bot, session.user.id, session.group.id if session.group else None
             )
         await MessageUtils.build_message(result).send(reply_to=True)
+        logger.info("ww登录成功", arparma.header_result, session=session)
     except APIResponseException as e:
-        logger.error("ww登录失败", LOG_COMMAND, session=session, e=e)
         await MessageUtils.build_message(str(e)).send()
     except WavesException as e:
-        logger.error("ww登录失败", LOG_COMMAND, session=session, e=e)
         await MessageUtils.build_message(str(e)).send()
     except Exception as e:
-        logger.error("ww登录失败", LOG_COMMAND, session=session, e=e)
+        logger.error("ww登录失败", arparma.header_result, session=session, e=e)
         await MessageUtils.build_message("登录未知错误，请稍后再试").send()

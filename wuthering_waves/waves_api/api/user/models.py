@@ -192,6 +192,10 @@ class RoleListData(BaseModel):
     """角色列表"""
     show_to_guest: bool = Field(..., alias="showToGuest", description="是否对访客显示")
     """是否对访客显示"""
+    show_role_id_list: list[int] | None = Field(
+        None, alias="showRoleIdList", description="显示角色ID列表"
+    )
+    """显示角色ID列表"""
 
 
 class TowerRoleInfo(BaseModel):

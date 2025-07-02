@@ -8,6 +8,7 @@ from aiocache import cached
 from qrcode.constants import ERROR_CORRECT_L
 from qrcode.main import QRCode
 
+from zhenxun.services.log import logger
 from zhenxun.utils.http_utils import AsyncHttpx
 
 from ..paths import QR_TEMP_PATH
@@ -154,3 +155,22 @@ class TimedCache:
     def __len__(self):
         """返回缓存中的项目数量"""
         return len(self.cache)
+
+
+async def with_semaphore(semaphore, func, **kwargs):
+    """在信号量控制下执行异步函数
+
+    参数:
+        semaphore: 用于控制并发的信号量对象
+        func: 要执行的异步函数
+        **kwargs: 传递给异步函数的关键字参数
+
+    返回:
+        异步函数的执行结果
+    """
+    try:
+        async with semaphore:
+            return await func(**kwargs)
+    except Exception as e:
+        logger.error(f"with_semaphore 执行异步函数{func.__name__}失败", e=e)
+        return None

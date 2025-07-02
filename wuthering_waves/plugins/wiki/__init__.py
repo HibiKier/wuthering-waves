@@ -32,13 +32,14 @@ _matcher = on_alconna(
 
 
 @_matcher.handle()
-async def _(bot: Bot, session: Uninfo, arparma: Arparma, ann_id: Match[str]):
+async def _(session: Uninfo, arparma: Arparma):
     try:
         await WikiDataSource.get_wiki_home()
+        logger.info("ww查询日历成功", arparma.header_result, session=session)
     except APIResponseException as e:
         await MessageUtils.build_message(str(e)).send()
     except WavesException as e:
         await MessageUtils.build_message(str(e)).send()
     except Exception as e:
-        logger.error("查询公告失败", session=session, e=e)
+        logger.error("ww查询日历失败", arparma.header_result, session=session, e=e)
         await MessageUtils.build_message("查询失败，请稍后再试").send()

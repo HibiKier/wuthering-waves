@@ -29,16 +29,22 @@ _matcher = on_alconna(
 
 
 @_matcher.handle()
-async def _(bot: Bot, session: Uninfo, arparma: Arparma, ann_id: Match[str]):
+async def _(session: Uninfo, arparma: Arparma, ann_id: Match[str]):
     try:
         if ann_id.available:
             await AnnDataSource.get_ann_detail(ann_id.result)
         else:
             await AnnDataSource.get_ann()
+        logger.info(
+            "ww查询鸣潮公告成功，"
+            f"公告ID：{ann_id.result if ann_id.available else '全部'}",
+            arparma.header_result,
+            session=session,
+        )
     except APIResponseException as e:
         await MessageUtils.build_message(str(e)).send()
     except WavesException as e:
         await MessageUtils.build_message(str(e)).send()
     except Exception as e:
-        logger.error("查询公告失败", session=session, e=e)
+        logger.error("ww查询鸣潮公告失败", arparma.header_result, session=session, e=e)
         await MessageUtils.build_message("查询失败，请稍后再试").send()

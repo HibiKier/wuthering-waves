@@ -2,27 +2,8 @@ from ....base_models import WwBaseResponse
 from ...api.login import login_status_check
 from ...const import BASE_DATA_URL, ROLE_DATA_URL, TOWER_DETAIL_URL
 from ...headers import get_headers
-from ..call import CallApi
+from ..call import CallApi, get_access_token
 from .models import BaseUserData, RoleListData, TowerData
-
-
-async def get_access_token(
-    role_id: str, cookie: str, device_id: str, server_id: str | None = None
-) -> str:
-    """获取access_token
-
-    参数:
-        role_id: 角色ID
-        cookie: 登录cookie
-        device_id: 设备ID
-        server_id: 服务器ID
-
-    返回:
-        str: access_token
-    """
-    from ....handles.cookie import CookieHandler
-
-    return await CookieHandler.get_access_token(role_id, cookie, device_id, server_id)
 
 
 class UserApi:

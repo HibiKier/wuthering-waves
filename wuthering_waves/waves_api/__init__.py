@@ -2,7 +2,7 @@ from ..base_models import WwBaseResponse
 from .api.login import LoginApi
 from .api.login.models import LoginResult, RequestToken
 from .api.role import RoleApi
-from .api.role.models import RoleInfo
+from .api.role.models import CharDetailData, RoleDataContent, RoleInfo
 from .api.user import UserApi
 from .api.user.models import BaseUserData, RoleListData, TowerData
 
@@ -132,3 +132,36 @@ class WavesApi:
             WwBaseResponse[TowerData]: 深境数据
         """
         return await UserApi.get_abyss_index(role_id, cookie, server_id)
+
+    @classmethod
+    async def get_char_detail_info(
+        cls, char_id: str, role_id: str, cookie: str, server_id: str | None = None
+    ) -> WwBaseResponse[CharDetailData]:
+        """获取角色详情信息
+
+        参数:
+            char_id: 角色id
+            role_id: 角色id
+            cookie: 登录cookie
+            server_id: 服务器id
+
+        返回:
+            WwBaseResponse[CharDetailData]: 角色详情信息
+        """
+        return await RoleApi.get_char_detail_info(char_id, role_id, cookie, server_id)
+
+    @classmethod
+    async def get_char_list(
+        cls, role_id: str, cookie: str, server_id: str | None = None
+    ) -> WwBaseResponse[RoleDataContent]:
+        """获取角色列表
+
+        参数:
+            role_id: 角色id
+            cookie: 登录cookie
+            server_id: 服务器id
+
+        返回:
+            WwBaseResponse[RoleDataContent]: 角色列表
+        """
+        return await RoleApi.char_list(role_id, cookie, server_id)

@@ -31,14 +31,24 @@ _matcher = on_alconna(
 
 
 @_matcher.handle()
-async def _(bot: Bot, session: Uninfo, arparma: Arparma, area: Match[str]):
+async def _(session: Uninfo, arparma: Arparma, area: Match[str]):
+    area_str = area.result if area.available else ""
     try:
-        area_str = area.result if area.available else ""
         await AbyssDataSource.get_abyss(area_str, session.user.id, None)
+        logger.info(
+            f"ww查询深渊成功，区域：{area_str or '全部'}",
+            arparma.header_result,
+            session=session,
+        )
     except APIResponseException as e:
         await MessageUtils.build_message(str(e)).send()
     except WavesException as e:
         await MessageUtils.build_message(str(e)).send()
     except Exception as e:
-        logger.error("查询深渊失败", session=session, e=e)
+        logger.error(
+            f"ww查询深渊失败，区域：{area_str or '全部'}",
+            arparma.header_result,
+            session=session,
+            e=e,
+        )
         await MessageUtils.build_message("查询失败，请稍后再试").send()

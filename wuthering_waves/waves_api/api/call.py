@@ -10,21 +10,30 @@ from zhenxun.utils.http_utils import AsyncHttpx
 
 from ...base_models import WwBaseResponse
 from ...config import LOG_COMMAND
-from ...exceptions import APIResponseException
+from ...exceptions import APICallException, APIResponseException
+from ...utils.utils import TimedCache
+from ..api.login.models import (
+    RequestToken,
+)
 from ..captcha import get_solver
 from ..captcha.base import CaptchaResult
 from ..captcha.errors import CaptchaError
 from ..const import (
     GAME_ID,
     NET_SERVER_ID_MAP,
+    REQUEST_TOKEN,
     SERVER_ID,
     SERVER_ID_NET,
+    SUCCESS_CODE,
 )
 from ..error_code import (
     WAVES_CODE_999,
+    get_error_message,
 )
 from ..headers import get_headers
 from ..models import CallResult
+
+_bat_cache = TimedCache(timeout=60 * 60 * 24 * 365)
 
 
 def login_platform() -> str:
@@ -148,3 +157,44 @@ class CallApi:
             return await cls.call_post(url, header=header, data=retry_data)
 
         return raw_data
+
+
+async def get_access_token(
+    role_id: str, cookie: str, device_id: str, server_id: str | None = None
+) -> str:
+    """获取access_token
+
+    参数:
+        role_id: 角色id
+        cookie: 登录token
+        device_id: 设备id
+        server_id: 服务器id
+
+    异常:
+        APICallException: 请求调用错误
+
+    返回:
+        str: access_token
+    """
+    if _bat_cache.get(role_id):
+        return str(_bat_cache.get(role_id))
+    header = await get_headers(cookie, role_id=role_id)
+    header.update({"token": cookie, "did": device_id, "b-at": ""})
+    response = await CallApi.call_post(
+        REQUEST_TOKEN,
+        header=header,
+        data={
+            "serverId": server_id or get_server_id(role_id),
+            "roleId": role_id,
+        },
+    )
+    # 兼容pydantic 1.x
+    response.data = RequestToken(**response.data)
+    if not response.success and response.code not in SUCCESS_CODE:
+        raise APICallException(
+            response.url,
+            response.code,
+            response.msg or get_error_message(response.code),
+        )
+    _bat_cache.set(role_id, response.data.access_token)
+    return response.data.access_token
