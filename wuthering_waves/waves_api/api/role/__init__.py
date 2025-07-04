@@ -1,7 +1,11 @@
+from typing import Any
+
 from ....base_models import WwBaseResponse
 from ...const import (
+    BATCH_ROLE_COST,
     GAME_ID,
-    ONLINE_LIST_ROLE,
+    QUERY_OWNED_ROLE,
+    ROLE_CULTIVATE_STATUS,
     ROLE_DATA_URL,
     ROLE_DETAIL_URL,
     ROLE_LIST_URL,
@@ -9,8 +13,8 @@ from ...const import (
 from ...headers import get_common_header, get_headers
 from ..call import CallApi, get_access_token, get_server_id, login_platform
 from ..login import login_status_check
-from .models import CharDetailData, RoleDataContent, RoleInfo, RoleItem
-
+from .models import CharDetailData, RoleDataContent, RoleInfo, RoleProgress
+import ujson as json
 
 class RoleApi:
     @classmethod
@@ -112,16 +116,72 @@ class RoleApi:
 
     @classmethod
     @login_status_check()
-    async def get_online_list_role(cls, cookie: str) -> WwBaseResponse[list[RoleItem]]:
-        """所有的角色列表
+    async def get_owned_role(
+        cls, role_id: str, cookie: str, server_id: str | None = None
+    ) -> WwBaseResponse[list[int]]:
+        """获取已拥有的角色
 
         参数:
-            cookie: 登录token
+            role_id: 角色ID
+            cookie: 登录cookie
+            server_id: 服务器ID
 
         返回:
-            WwBaseResponse[list[RoleItem]]: 角色列表
+            WwBaseResponse[list[int]]: 已拥有的角色
         """
-        header = await get_headers(cookie)
-        response = await CallApi.call_post(ONLINE_LIST_ROLE, header=header)
-        response.data = [RoleItem(**v) for v in response.data]
+        header = await get_headers(cookie, role_id=role_id)
+        response = await CallApi.call_post(
+            QUERY_OWNED_ROLE,
+            header=header,
+            data=CallApi.default_params(role_id, server_id),
+        )
         return response
+
+    @classmethod
+    @login_status_check()
+    async def get_develop_role_cultivate_status(
+        cls,
+        role_id: str,
+        cookie: str,
+        char_ids: list[int],
+    ) -> WwBaseResponse[list[RoleProgress]]:
+        """获取角色（游戏内角色）养成状态
+
+        参数:
+            role_id: 角色ID
+            cookie: 登录cookie
+            char_ids: 角色ID列表
+
+        返回:
+            WwBaseResponse[list[RoleProgress]]: 角色养成状态
+        """
+        header = await get_headers(cookie, role_id=role_id)
+        response = await CallApi.call_post(
+            ROLE_CULTIVATE_STATUS,
+            header=header,
+            data={
+                "serverId": get_server_id(role_id),
+                "roleId": role_id,
+                "ids": ",".join(map(str, char_ids)),
+            },
+        )
+        response.data = [RoleProgress(**v) for v in response.data]
+        return response
+
+    @classmethod
+    @login_status_check()
+    async def get_batch_role_cost(
+        cls,
+        role_id: str,
+        cookie: str,
+        content: list[dict[str, Any]],
+        server_id: str | None = None,
+    ) -> WwBaseResponse[list[RoleCost]]:
+        header = await get_headers(cookie, role_id=role_id)
+        data = {
+            "serverId": server_id or get_server_id(role_id),
+            "roleId": role_id,
+            "content": json.dumps(content),
+        }
+        raw_data = await self._waves_request(BATCH_ROLE_COST, "POST", header, data=data)
+        return await _check_response(raw_data, token, roleId)

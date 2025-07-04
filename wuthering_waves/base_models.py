@@ -3,7 +3,6 @@ from typing import Generic, TypeVar
 from pydantic import BaseModel
 
 from .exceptions import APIResponseException
-from .waves_api.const import SUCCESS_CODE
 
 T = TypeVar("T")
 
@@ -27,5 +26,5 @@ class WwBaseResponse(BaseModel, Generic[T]):
         self.raise_for_code()
 
     def raise_for_code(self):
-        if self.code not in SUCCESS_CODE:
+        if self.code not in {10902, 200}:
             raise APIResponseException(self.url or "", self.code, self.msg)

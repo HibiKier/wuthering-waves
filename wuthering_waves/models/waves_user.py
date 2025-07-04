@@ -1,4 +1,4 @@
-from typing import cast
+from typing import Literal, TypeVar, cast, overload
 
 from tortoise import fields
 
@@ -6,6 +6,8 @@ from zhenxun.services.db_context import Model
 from zhenxun.utils.common_utils import SqlUtils
 
 from ..utils.emuns import CookieStatus
+
+T = TypeVar("T", bound="WavesUser")
 
 
 class WavesUser(Model):
@@ -23,8 +25,8 @@ class WavesUser(Model):
     """平台"""
     role_id = fields.CharField(255, null=True, unique=True, description="鸣潮uid")
     """鸣潮uid"""
-    record_id = fields.CharField(255, null=True, description="鸣潮记录ID")
-    """鸣潮记录ID"""
+    waves_id = fields.CharField(255, null=True, description="鸣潮记录ID")
+    """鸣潮id"""
     auto_sign = fields.BooleanField(default=False, description="是否自动签到")
     """是否自动签到"""
     access_token = fields.CharField(255, null=True, description="access_token")
@@ -43,6 +45,7 @@ class WavesUser(Model):
         cookie: str | None = None,
         user_id: str | None = None,
         role_id: str | None = None,
+        waves_id: str | None = None,
     ):
         """失效cookie
 
@@ -51,8 +54,8 @@ class WavesUser(Model):
             user_id: 需要失效的user_id
             role_id: 需要失效的role_id
         """
-        if not user_id and not role_id and not cookie:
-            raise ValueError("user_id, role_id, cookie 不能同时为空")
+        if not user_id and not role_id and not cookie and not waves_id:
+            raise ValueError("user_id, role_id, cookie, waves_id 不能同时为空")
         if user_id:
             await cls.filter(user_id=user_id).update(
                 cookie_status=CookieStatus.LOGIN_INVALID
@@ -61,8 +64,12 @@ class WavesUser(Model):
             await cls.filter(role_id=role_id).update(
                 cookie_status=CookieStatus.LOGIN_INVALID
             )
-        else:
+        elif cookie:
             await cls.filter(cookie=cookie).update(
+                cookie_status=CookieStatus.LOGIN_INVALID
+            )
+        else:
+            await cls.filter(waves_id=waves_id).update(
                 cookie_status=CookieStatus.LOGIN_INVALID
             )
 
@@ -75,14 +82,37 @@ class WavesUser(Model):
         )
 
     @classmethod
-    async def random_cookie(cls, count: int = 1) -> list["WavesUser"]:
+    async def get_waves_ids(cls, user_id: str) -> list[str]:
+        """获取用户鸣潮uid"""
+        return cast(
+            list[str],
+            await cls.filter(user_id=user_id).values_list("waves_id", flat=True),
+        )
+
+    @classmethod
+    @overload
+    async def random_cookie(
+        cls, count: int = 1, *, only_cookie: Literal[False] = False
+    ) -> list["WavesUser"]: ...
+
+    @classmethod
+    @overload
+    async def random_cookie(
+        cls, count: int = 1, *, only_cookie: Literal[True]
+    ) -> list[tuple[str, str]]: ...
+
+    @classmethod
+    async def random_cookie(
+        cls, count: int = 1, only_cookie: bool = False
+    ) -> list[tuple[str, str]] | list["WavesUser"]:
         """随机获取一个登录成功的cookie
 
         参数:
             count: 获取数量
+            only_cookie: 是否只返回cookie
 
         返回:
-            list["WavesUser"]: 随机获取
+            list[tuple[str, str]] | list["WavesUser"]: 随机获取的用户或cookie列表
         """
         sql = SqlUtils.random(
             cls.filter(
@@ -90,7 +120,11 @@ class WavesUser(Model):
             ),
             count,
         )
-        return cast(list["WavesUser"], await cls.raw(sql))
+        results: list["WavesUser"] = cast(list["WavesUser"], await cls.raw(sql))
+        if only_cookie:
+            return [(s.role_id, s.cookie) for s in results]
+        else:
+            return results
 
     @classmethod
     async def get_user_cookie(cls, role_id: str) -> "WavesUser | None":

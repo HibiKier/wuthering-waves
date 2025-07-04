@@ -42,6 +42,43 @@ class EntityManager:
             logger.info(f"加载ID到名称的映射: {ID2NAME_FILE}", LOG_COMMAND)
 
     @classmethod
+    def get_weapon_alias(cls, weapon_name: str) -> str:
+        """获取武器别名
+
+        参数:
+            weapon_name: 武器名
+
+        返回:
+            str: 武器别名
+        """
+        for i in cls._weapon_alias:
+            if (weapon_name in i) or (weapon_name in cls._weapon_alias[i]):
+                return i
+
+        if "专武" in weapon_name:
+            char_name = weapon_name.replace("专武", "")
+            name = cls.get_char_alias(char_name)
+            weapon_name = f"{name}专武"
+
+        for i in cls._weapon_alias:
+            if (weapon_name in i) or (weapon_name in cls._weapon_alias[i]):
+                return i
+
+        return weapon_name
+
+    @classmethod
+    def id_to_name(cls, id: int | str) -> str | None:
+        """获取单位名称
+
+        参数:
+            id: 单位id
+
+        返回:
+            str | None: 单位名称
+        """
+        return cls._id2name.get(str(id))
+
+    @classmethod
     def get_char_alias(cls, name: str) -> str | None:
         """获取角色别名
 
@@ -93,23 +130,6 @@ class EntityManager:
         return None
 
     @classmethod
-    def get_weapon_alias(cls, name: str) -> str | None:
-        """获取武器别名
-
-        参数:
-            name: 武器名
-
-        返回:
-            str | None: 别名
-        """
-        for alias, aliases in cls._weapon_alias.items():
-            if name in aliases:
-                return alias
-            if cn2py(name) == cn2py(alias):
-                return alias
-        return None
-
-    @classmethod
     def name_to_id(cls, name: str) -> int | None:
         """获取角色ID
 
@@ -119,13 +139,12 @@ class EntityManager:
         返回:
             int | None: 角色ID
         """
-        alias = cls.get_char_alias(name)
-        if not alias:
+        if alias := cls.get_char_alias(name):
+            return next(
+                (int(id) for id, name in cls._id2name.items() if name == alias), None
+            )
+        else:
             return None
-        for id, name in cls._id2name.items():
-            if name == alias:
-                return int(id)
-        return None
 
 
 EntityManager.load_data()

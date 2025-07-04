@@ -40,3 +40,20 @@ async def _(
     except Exception as e:
         logger.error("ww刷新面板失败", arparma.header_result, session=session, e=e)
         await MessageUtils.build_message("查询失败，请稍后再试").send()
+
+
+@_matcher.assign("panel")
+async def _(
+    bot: Bot, session: Uninfo, arparma: Arparma, char: Match[str], role: Match[str]
+):
+    char_name = [char.result] if char.available else "all"
+    role_id = role.result if role.available else None
+    try:
+        await CharInfoDataSource.get_char_detail(session.user.id, role_id, char_name)
+    except APIResponseException as e:
+        await MessageUtils.build_message(str(e)).send()
+    except WavesException as e:
+        await MessageUtils.build_message(str(e)).send()
+    except Exception as e:
+        logger.error("ww刷新面板失败", arparma.header_result, session=session, e=e)
+        await MessageUtils.build_message("查询失败，请稍后再试").send()

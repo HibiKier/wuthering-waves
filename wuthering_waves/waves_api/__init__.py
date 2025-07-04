@@ -1,8 +1,13 @@
+from aiocache import cached
+
 from ..base_models import WwBaseResponse
 from .api.login import LoginApi
 from .api.login.models import LoginResult, RequestToken
+from .api.online import OnlineApi
+from .api.online.models import RoleItem, WeaponItem
+from .api.other import OtherApi
 from .api.role import RoleApi
-from .api.role.models import CharDetailData, RoleDataContent, RoleInfo
+from .api.role.models import CharDetailData, RoleDataContent, RoleInfo, RoleProgress
 from .api.user import UserApi
 from .api.user.models import BaseUserData, RoleListData, TowerData
 
@@ -165,3 +170,72 @@ class WavesApi:
             WwBaseResponse[RoleDataContent]: 角色列表
         """
         return await RoleApi.char_list(role_id, cookie, server_id)
+
+    @classmethod
+    @cached(ttl=60 * 60 * 6)
+    async def get_online_list_role(cls, cookie: str) -> WwBaseResponse[list[RoleItem]]:
+        """获取已上线的角色
+
+        参数:
+            cookie: 登录cookie
+
+        返回:
+            WwBaseResponse[bool]: 已上线的角色
+        """
+        return await OnlineApi.get_online_list_role(cookie)
+
+    @classmethod
+    @cached(ttl=60 * 60 * 6)
+    async def get_online_list_weapon(
+        cls, cookie: str
+    ) -> WwBaseResponse[list[WeaponItem]]:
+        """获取已上线的武器
+
+        参数:
+            cookie: 登录cookie
+
+        返回:
+            WwBaseResponse[list[WeaponItem]]: 已上线的武器
+        """
+        return await OnlineApi.get_online_list_weapon(cookie)
+
+    @classmethod
+    async def calculator_refresh_data(
+        cls, role_id: str, cookie: str, server_id: str | None = None
+    ) -> WwBaseResponse[bool]:
+        """刷新养成数据"""
+        return await OtherApi.calculator_refresh_data(role_id, cookie, server_id)
+
+    @classmethod
+    async def get_owned_role(
+        cls, role_id: str, cookie: str, server_id: str | None = None
+    ) -> WwBaseResponse[list[int]]:
+        """获取已拥有的角色
+
+        参数:
+            role_id: 角色ID
+            cookie: 登录cookie
+            server_id: 服务器ID
+
+        返回:
+            WwBaseResponse[list[int]]: 已拥有的角色
+        """
+        return await RoleApi.get_owned_role(role_id, cookie, server_id)
+
+    @classmethod
+    async def get_develop_role_cultivate_status(
+        cls, role_id: str, cookie: str, char_ids: list[int]
+    ) -> WwBaseResponse[list[RoleProgress]]:
+        """获取角色养成状态
+
+        参数:
+            role_id: 角色ID
+            cookie: 登录cookie
+            char_ids: 角色ID列表
+
+        返回:
+            WwBaseResponse[list[RoleProgress]]: 角色养成状态
+        """
+        return await RoleApi.get_develop_role_cultivate_status(
+            role_id, cookie, char_ids
+        )

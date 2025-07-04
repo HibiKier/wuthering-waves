@@ -5,6 +5,7 @@ _matcher = on_alconna(
         "ww-board",
         Option("-r", Args["role", str]),
         Subcommand("refresh", Args["char?", str]),
+        Subcommand("panel", Args["char", str]),
     ),
     priority=5,
     block=True,
@@ -14,5 +15,12 @@ _matcher.shortcut(
     r"ww刷新面板\s*(?P<name>.*)",
     command="ww-board",
     arguments=["refresh", "{name}"],
+    prefix=True,
+)
+
+_matcher.shortcut(
+    r"ww面板\s*(?P<name>.*)",
+    command="ww-board",
+    arguments=["panel", "{name}"],
     prefix=True,
 )

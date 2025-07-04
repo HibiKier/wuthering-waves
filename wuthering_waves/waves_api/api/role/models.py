@@ -1,3 +1,5 @@
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 
@@ -117,7 +119,7 @@ class Role(BaseModel):
 class RoleDataContent(BaseModel):
     """data字段的内部JSON内容"""
 
-    role_list: list[Role] = Field(..., alias="rolelist", description="角色列表")
+    role_list: list[Role] = Field(..., alias="roleList", description="角色列表")
     """角色列表"""
     show_to_guest: bool = Field(..., alias="showToGuest", description="是否对访客显示")
     """是否对访客显示"""
@@ -254,8 +256,8 @@ class PhantomData(BaseModel):
 
     cost: int = Field(..., alias="cost", description="总消耗")
     """总消耗"""
-    equip_phantom_list: list[EquipPhantom] = Field(
-        default_factory=list, alias="equipPhantomlist", description="装备声骸列表"
+    equip_phantom_list: list[EquipPhantom | None] = Field(
+        default_factory=list, alias="equipPhantomList", description="装备声骸列表"
     )
     """装备声骸列表"""
 
@@ -402,7 +404,7 @@ class WeaponData(BaseModel):
     level: int = Field(..., alias="level", description="等级")
     """等级"""
     main_prop_list: list[MainPropWeapon] = Field(
-        default_factory=list, alias="mainProplist", description="主属性列表"
+        default_factory=list, alias="mainPropList", description="主属性列表"
     )
     """主属性列表"""
     reson_level: int = Field(..., alias="resonLevel", description="共鸣等级")
@@ -415,18 +417,18 @@ class CharDetailData(BaseModel):
     """data字段的内部JSON内容"""
 
     chain_list: list[Chain] = Field(
-        default_factory=list, alias="chainlist", description="链列表"
+        default_factory=list, alias="chainList", description="链列表"
     )
     """链列表"""
     equip_phantom_add_prop_list: list[EquipPhantomAddProp] = Field(
         default_factory=list,
-        alias="equipPhantomAddProplist",
+        alias="equipPhantomAddPropList",
         description="装备声骸附加属性列表",
     )
     """装备声骸附加属性列表"""
     equip_phantom_attribute_list: list[EquipPhantomAttribute] = Field(
         default_factory=list,
-        alias="equipPhantomAttributelist",
+        alias="equipPhantomAttributeList",
         description="装备声骸属性列表",
     )
     """装备声骸属性列表"""
@@ -437,73 +439,151 @@ class CharDetailData(BaseModel):
     role: RoleBasicInfo = Field(..., alias="role", description="角色基础信息")
     """角色基础信息"""
     role_attribute_list: list[RoleAttribute] = Field(
-        default_factory=list, alias="roleAttributelist", description="角色属性列表"
+        default_factory=list, alias="roleAttributeList", description="角色属性列表"
     )
     """角色属性列表"""
     role_skin: RoleSkinFull = Field(..., alias="roleSkin", description="角色皮肤")
     """角色皮肤"""
     skill_list: list[SkillItem] = Field(
-        default_factory=list, alias="skilllist", description="技能列表"
+        default_factory=list, alias="skillList", description="技能列表"
     )
     """技能列表"""
     weapon_data: WeaponData = Field(..., alias="weaponData", description="武器数据")
     """武器数据"""
 
 
-class CommonSkill(BaseModel):
-    """通用技能信息"""
+class SkillLevel(BaseModel):
+    """技能等级信息"""
 
     type: str = Field(..., alias="type", description="技能类型")
     """技能类型"""
-    icon_url: str = Field(..., alias="iconUrl", description="图标URL")
-    """图标URL"""
+    level: int = Field(..., alias="level", description="等级")
+    """等级"""
 
 
-class AdvanceSkill(BaseModel):
-    """进阶技能信息"""
-
-    location: str = Field(..., alias="location", description="技能位置")
-    """技能位置"""
-    icon_url: str = Field(..., alias="iconUrl", description="图标URL")
-    """图标URL"""
-
-
-class RoleItem(BaseModel):
-    """角色列表项"""
+class RoleProgress(BaseModel):
+    """角色进度信息项"""
 
     role_id: int = Field(..., alias="roleId", description="角色ID")
     """角色ID"""
     role_name: str = Field(..., alias="roleName", description="角色名称")
     """角色名称"""
-    role_icon_url: str = Field(..., alias="roleIconUrl", description="角色图标URL")
-    """角色图标URL"""
-    star_level: int = Field(..., alias="starLevel", description="星级")
-    """星级"""
-    attribute_id: int = Field(..., alias="attributeId", description="属性ID")
-    """属性ID"""
-    attribute_name: str | None = Field(
-        None, alias="attributeName", description="属性名称"
+    role_level: int = Field(..., alias="roleLevel", description="角色等级")
+    """角色等级"""
+    role_break_level: int = Field(
+        ..., alias="roleBreakLevel", description="角色突破等级"
     )
-    """属性名称"""
-    weapon_type_id: int = Field(..., alias="weaponTypeId", description="武器类型ID")
-    """武器类型ID"""
-    weapon_type_name: str = Field(
-        ..., alias="weaponTypeName", description="武器类型名称"
+    """角色突破等级"""
+    skill_level_list: list[SkillLevel] = Field(
+        ..., alias="skillLevelList", description="技能等级列表"
     )
-    """武器类型名称"""
-    acronym: str = Field(..., alias="acronym", description="首字母缩写")
-    """首字母缩写"""
+    """技能等级列表"""
+    skill_break_list: list[str] = Field(
+        ..., alias="skillBreakList", description="技能突破列表"
+    )
+    """技能突破列表"""
+
+
+class CostItem(BaseModel):
+    """消耗物品项"""
+
+    id: str = Field(..., alias="id", description="物品ID")
+    """物品ID"""
+    name: str = Field(..., alias="name", description="物品名称")
+    """物品名称"""
+    icon_url: str = Field(..., alias="iconUrl", description="图标URL")
+    """图标URL"""
+    num: int = Field(..., alias="num", description="数量")
+    """数量"""
+    type: int = Field(..., alias="type", description="类型")
+    """类型"""
+    quality: int = Field(..., alias="quality", description="品质")
+    """品质"""
     is_preview: bool = Field(..., alias="isPreview", description="是否预览")
     """是否预览"""
-    is_new: bool = Field(..., alias="isNew", description="是否新角色")
-    """是否新角色"""
-    priority: int = Field(..., alias="priority", description="优先级")
-    """优先级"""
-    common_skill_list: list[CommonSkill] = Field(
-        ..., alias="commonSkillList", description="通用技能列表"
+
+
+class StrategyItem(BaseModel):
+    """攻略项"""
+
+    post_id: str = Field(..., alias="postId", description="帖子ID")
+    """帖子ID"""
+    post_title: str = Field(..., alias="postTitle", description="帖子标题")
+    """帖子标题"""
+
+
+class CostDetail(BaseModel):
+    """消耗详情"""
+
+    all_cost: list[CostItem] = Field(..., alias="allCost", description="所有消耗")
+    """所有消耗"""
+    missing_cost: list[CostItem] = Field(
+        ..., alias="missingCost", description="缺失消耗"
     )
-    """通用技能列表"""
-    advance_skill_list: list[AdvanceSkill] = Field(
-        ..., alias="advanceSkillList", description="进阶技能列表"
+    """缺失消耗"""
+    synthetic: list[CostItem] = Field(..., alias="synthetic", description="合成材料")
+    """合成材料"""
+    missing_role_cost: list[CostItem] | None = Field(
+        ..., alias="missingRoleCost", description="缺失角色材料"
     )
-    """进阶技能列表"""
+    """缺失角色材料"""
+    missing_skill_cost: list[CostItem] = Field(
+        ..., alias="missingSkillCost", description="缺失技能材料"
+    )
+    """缺失技能材料"""
+    missing_weapon_cost: Any | None = Field(
+        ..., alias="missingWeaponCost", description="缺失武器材料"
+    )  # null 或其他类型
+    """缺失武器材料"""
+    role_id: int = Field(..., alias="roleId", description="角色ID")
+    """角色ID"""
+    weapon_id: int | None = Field(
+        ..., alias="weaponId", description="武器ID"
+    )  # null 或其他类型
+    """武器ID"""
+    strategy_list: list[StrategyItem] = Field(
+        ..., alias="strategyList", description="攻略列表"
+    )
+    """攻略列表"""
+    show_strategy: bool = Field(..., alias="showStrategy", description="是否显示攻略")
+    """是否显示攻略"""
+
+
+class PreviewData(BaseModel):
+    """预览数据"""
+
+    all_cost: list[CostItem] = Field(..., alias="allCost", description="所有消耗")
+    """所有消耗"""
+    missing_cost: list[CostItem] = Field(
+        ..., alias="missingCost", description="缺失消耗"
+    )
+    """缺失消耗"""
+    synthetic: list[CostItem] = Field(..., alias="synthetic", description="合成材料")
+    """合成材料"""
+    missing_role_cost: list[CostItem] = Field(
+        ..., alias="missingRoleCost", description="缺失角色材料"
+    )
+    """缺失角色材料"""
+    missing_skill_cost: list[CostItem] = Field(
+        ..., alias="missingSkillCost", description="缺失技能材料"
+    )
+    """缺失技能材料"""
+    missing_weapon_cost: Any | None = Field(
+        None, alias="missingWeaponCost", description="缺失武器材料"
+    )  # null 或其他类型
+    """缺失武器材料"""
+
+
+class CostContent(BaseModel):
+    """数据内容"""
+
+    role_num: int = Field(..., alias="roleNum", description="角色数量")
+    """角色数量"""
+    weapon_num: int = Field(..., alias="weaponNum", description="武器数量")
+    """武器数量"""
+    preview: PreviewData = Field(..., alias="preview", description="预览数据")
+    """预览数据"""
+    cost_list: list[CostDetail] = Field(
+        ..., alias="costList", description="消耗详情列表"
+    )
+    """消耗详情列表"""

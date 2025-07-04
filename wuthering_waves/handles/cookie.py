@@ -13,6 +13,18 @@ from ..waves_api.error_code import get_error_message
 
 class CookieHandler:
     @classmethod
+    async def get_random_cookie(cls) -> str | None:
+        """随机获取一个有效的cookie"""
+        results = await WavesUser.random_cookie(1000, only_cookie=True)
+        for role_id, cookie in results:
+            try:
+                if await LoginApi.login_log(role_id=role_id, cookie=cookie):
+                    return cookie
+            except LoginStatusCheckException as e:
+                logger.warning(f"role_id: 【{role_id}】登录已失效...", LOG_COMMAND, e=e)
+        return None
+
+    @classmethod
     async def get_cookie(
         cls, user_id: str, role_id: str | None = None
     ) -> tuple[str | None, bool]:
